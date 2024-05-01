@@ -25,3 +25,10 @@ pub enum QueryType {
     MX,
     TXT
 }
+
+
+// TODO: name, type, class, ttl, rdlength, rdata
+pub struct ResourceRecord {
+
+
+}
