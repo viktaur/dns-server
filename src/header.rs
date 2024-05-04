@@ -1,17 +1,31 @@
 use deku::prelude::*;
+use crate::buffer::ByteBuffer;
+use anyhow::{Error, Result};
 
-#[derive(Debug, PartialEq, DekuRead, DekuWrite)]
-#[deku(endian = "big")]
+#[derive(Debug, PartialEq, Clone, Copy, DekuRead, DekuWrite)]
 pub struct Header {
-    pub transaction_id: u16,        // 2 bytes
-    pub flags: Flags,               // 2 bytes
-    pub question: u16,              // 2 bytes
-    pub answer: u16,                // 2 bytes
-    pub authority: u16,             // 2 bytes
-    pub additional: u16,            // 2 bytes
+    pub transaction_id: u16,
+    pub flags: Flags,
+    /// Number of queries in packet.
+    pub question: u16,
+    /// Number of answers in packet.
+    pub answer: u16,
+    /// Number of authoritative records in packet.
+    pub authority: u16,
+    /// Number of additional records in packet.
+    pub additional: u16,
 }
 
-#[derive(Debug, PartialEq, DekuRead, DekuWrite)]
+impl Header {
+    pub fn parse(buf: &mut ByteBuffer) -> Result<Self> {
+        let ((_, new_pos), header) = DekuContainerRead::from_bytes((buf.data(), buf.pos()))?;
+        buf.jump_to(new_pos)?;
+        Ok(header)
+    }
+}
+
+#[derive(Debug, PartialEq, DekuRead, DekuWrite, Clone, Copy)]
+#[deku(endian = "big")]
 pub struct Flags {
     /// Indicates if the message is a query (0) or a reply (1).
     #[deku(bits=1)]

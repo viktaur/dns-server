@@ -34,20 +34,22 @@ fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let port: u16 = args[1].parse()
         .expect("Port should be a value between 0 and 65535.");
-    let addrs = [
-        SocketAddr::from(([127, 0, 0, 1], port))
-    ];
-    let socket = UdpSocket::bind(&addrs[..])?;
-    println!("Socket created");
 
-    let mut buf = [0; 10];
-    let (amt, src) = socket.recv_from(&mut buf)?;
+    let socket = UdpSocket::bind(("127.0.0.1", port))?;
+    println!("Socket created and bound to port {}", port);
 
-    let mut f = File::open("response_packet.txt")?;
-    let mut buffer = Vec::new();
-    f.read_to_end(&mut buffer)?;
+    let mut buf = [0; 1024]; // Increased buffer size for receiving data
+    loop {
+        let (amt, src) = socket.recv_from(&mut buf)?;
+        println!("Received {} bytes from {}", amt, src);
 
-    socket.send_to(&buffer, &src)?;
+        // Read the contents of the file into a buffer
+        let mut f = File::open("response_packet.txt")?;
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)?;
 
-    Ok(())
+        // Send the contents of the buffer back to the source address
+        socket.send_to(&buffer, &src)?;
+        println!("Sent {} bytes back to {}", buffer.len(), src);
+    }
 }

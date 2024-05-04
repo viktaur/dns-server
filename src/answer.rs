@@ -1,5 +1,6 @@
-use crate::{record::{Record, RecordType}, utils::parse_string};
+use crate::{buffer::ByteBuffer, header::Header, record::{RecordType}, utils::parse_string};
 use std::net::{Ipv4Addr, Ipv6Addr};
+use anyhow::Result;
 use deku::prelude::*;
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
@@ -9,10 +10,23 @@ pub struct Answer {
     class: u16,
     ttl: u32,
     data_length: u16,
+    #[deku(count = "data_length")]
     data: Vec<u8>           // e.g. 2a00:1440:4007::810d:2013
 }
 
 impl Answer {
+    pub fn parse(buf: &mut ByteBuffer, header: Header) -> Result<Vec<Answer>> {
+        let mut v: Vec<Answer> = vec![];
+
+        for i in 0..(header.answer) {
+            let ((_, new_pos), data) = DekuContainerRead::from_bytes((buf.data(), buf.pos()))?;
+            v.push(data);
+            buf.jump_to(new_pos)?;
+        }
+
+        Ok(v)
+    }
+
     fn get_name(&self, message: &[u8]) -> String {
         let mut iter = message.into_iter();
         let offset = self.name - 0xc000;
