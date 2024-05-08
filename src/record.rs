@@ -1,39 +1,32 @@
 use deku::prelude::*;
-
-pub enum Record {
-    UNKNOWN {
-
-    },
-    A {
-        domain: String,
-
-    },
-    AAAA {
-        domain: String,
-
-    },
-    MX {
-        hello: u8
-    },
-    TXT {
-
-    }
-}
+use anyhow::{Error, anyhow, Result};
 
 pub enum RecordType {
     A,
     AAAA,
 }
 
-impl From<u16> for RecordType {
-    fn from(value: u16) -> Self {
+impl TryFrom<u16> for RecordType {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
         match value {
-            1 => RecordType::A,
-            28 => RecordType::AAAA,
-            _ => panic!("Record type unsupported or unknown.")
+            1 => Ok(RecordType::A),
+            28 => Ok(RecordType::AAAA),
+            _ => Err(anyhow!("Record type unsupported or unknown."))
         }
     }
 }
+
+impl Into<u16> for RecordType {
+    fn into(self) -> u16 {
+        match self {
+            RecordType::A => 1,
+            RecordType::AAAA => 28,
+        }
+    }
+}
+
 
 // TODO: name, type, class, ttl, rdlength, rdata
 pub struct ResourceRecord {

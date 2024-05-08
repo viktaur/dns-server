@@ -2,14 +2,14 @@ use deku::prelude::*;
 use anyhow::Result;
 use crate::{buffer::ByteBuffer, header::Header, record::RecordType, utils::*};
 
-#[derive(Debug, PartialEq, DekuRead, DekuWrite)]
+#[derive(Debug, Clone, PartialEq, DekuRead, DekuWrite)]
 pub struct Query {
     pub name: Name,
     pub record_type: u16,
     pub class: u16,
 }
 
-#[derive(Debug, PartialEq, DekuRead, DekuWrite)]
+#[derive(Debug, Clone, PartialEq, DekuRead, DekuWrite)]
 pub struct Name {
 
 }
@@ -32,8 +32,8 @@ pub fn parse(buf: &mut ByteBuffer, header: Header) -> Result<Vec<Query>> {
         todo!()
     }
 
-    fn get_record_type(&self) -> RecordType {
-        self.record_type.into()
+    fn get_record_type(&self) -> Result<RecordType> {
+        self.record_type.try_into()
     }
 
     fn get_class(&self) -> () {

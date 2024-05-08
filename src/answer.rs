@@ -3,7 +3,7 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use anyhow::Result;
 use deku::prelude::*;
 
-#[derive(Debug, PartialEq, DekuRead, DekuWrite)]
+#[derive(Debug, Clone, PartialEq, DekuRead, DekuWrite)]
 pub struct Answer {
     name: u16,              // Represented as the offset, such as 0xc00c
     record_type: u16,       // e.g. AAAA 0x001x
@@ -27,17 +27,17 @@ impl Answer {
         Ok(v)
     }
 
-    fn get_name(&self, message: &[u8]) -> String {
+    fn get_name(&self, message: &[u8]) -> Result<String> {
         let mut iter = message.into_iter();
         let offset = self.name - 0xc000;
 
         (0..offset).for_each(|_| {iter.next();});
 
-        parse_string(iter.as_slice())
+        Ok(parse_string(iter.as_slice())?)
     }
 
-    fn get_record_type(&self) -> RecordType {
-        self.record_type.into()
+    fn get_record_type(&self) -> Result<RecordType> {
+        self.record_type.try_into()
     }
 
     fn get_class(&self) {
@@ -49,21 +49,21 @@ impl Answer {
         self.ttl
     }
 
-    fn get_data(&self) -> String {
-        match self.get_record_type() {
+    fn get_data(&self) -> Result<String> {
+        match self.get_record_type()? {
             RecordType::A => {
                 let array_bytes: [u8; 4] = self.data
                     .clone()
                     .try_into()
                     .expect("Data should contain exactly 4 bytes.");
-                Ipv4Addr::from(array_bytes).to_string()
+                Ok(Ipv4Addr::from(array_bytes).to_string())
             },
             RecordType::AAAA => {
                 let array_bytes: [u8; 16] = self.data
                     .clone()
                     .try_into()
                     .expect("Data should contain 16 bytes.");
-                Ipv6Addr::from(array_bytes).to_string()
+                Ok(Ipv6Addr::from(array_bytes).to_string())
             }
         }
     }

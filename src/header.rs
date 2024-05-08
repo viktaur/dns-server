@@ -1,6 +1,6 @@
 use deku::prelude::*;
 use crate::buffer::ByteBuffer;
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Error, Result};
 
 #[derive(Debug, PartialEq, Clone, Copy, DekuRead, DekuWrite)]
 pub struct Header {
@@ -49,7 +49,7 @@ pub struct Flags {
     #[deku(bits=1)]
     pub rd: bool,
 
-    /// Recursion available, in a response, indivicates if the replying DNS server
+    /// Recursion available, in a response, indicates if the replying DNS server
     /// supports recursion.
     #[deku(bits=1)]
     pub ra: bool,
@@ -62,4 +62,23 @@ pub struct Flags {
     /// NXDOMAIN (3, Nonexistent domain), etc.
     #[deku(bits=4)]
     pub rcode: u8
+}
+
+impl Flags {
+    pub fn handle(&self) -> Result<Self> {
+        let mut new_flags = self.clone();
+
+        if !self.qr { // it's a query
+            new_flags.qr = true;
+        } else { // it's a response
+            return Err(anyhow!("Header flags indicate message is not a query."));
+        }
+
+        match self.opcode {
+            0 => (),
+            _ => return Err(anyhow!("Only standard queries are supported!"))
+        }
+
+        Ok(new_flags)
+    }
 }
