@@ -1,5 +1,5 @@
 use deku::prelude::*;
-use crate::buffer::ByteBuffer;
+use crate::buffer::ByteReader;
 use anyhow::{anyhow, Error, Result};
 
 #[derive(Debug, PartialEq, Clone, Copy, DekuRead, DekuWrite)]
@@ -17,10 +17,14 @@ pub struct Header {
 }
 
 impl Header {
-    pub fn parse(buf: &mut ByteBuffer) -> Result<Self> {
+    pub fn parse(buf: &mut ByteReader) -> Result<Self> {
         let ((_, new_pos), header) = DekuContainerRead::from_bytes((buf.data(), buf.pos()))?;
         buf.jump_to(new_pos)?;
         Ok(header)
+    }
+
+    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        Ok(DekuContainerWrite::to_bytes(self)?)
     }
 }
 
@@ -76,7 +80,7 @@ impl Flags {
 
         match self.opcode {
             0 => (),
-            _ => return Err(anyhow!("Only standard queries are supported!"))
+            _ => return Err(anyhow!("Something went wrong in the query!"))
         }
 
         Ok(new_flags)

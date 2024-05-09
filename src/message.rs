@@ -1,5 +1,5 @@
 use crate::answer::Answer;
-use crate::buffer::ByteBuffer;
+use crate::buffer::ByteReader;
 use crate::header::{self, Header};
 use crate::query::Query;
 use anyhow::{Result};
@@ -13,9 +13,8 @@ pub struct DnsMessage {
 }
 
 impl DnsMessage {
-    pub fn handle(&self, answers: Vec<Answer>) -> Result<Self> {
-        let queries = self.queries.clone();
-        let header = Header {
+    pub fn handle(self, answers: Vec<Answer>) -> Result<Self> {
+        let new_header = Header {
             transaction_id: self.header.transaction_id,
             flags: self.header.flags.handle()?,
             question: self.header.question,
@@ -23,26 +22,27 @@ impl DnsMessage {
             authority: self.header.authority,
             additional: self.header.additional,
         };
-
-        // for query in queries {
-            // query.name
-        // }
+        let queries = self.queries.clone();
 
         Ok(
             DnsMessage {
-                header,
+                header: new_header,
                 queries,
                 answers,
             }
         )
     }
 
-    pub fn from_bytes(data: &[u8]) -> Result<Self> {
-        let mut buf = ByteBuffer::new();
+    pub fn parse(data: &[u8]) -> Result<Self> {
+        let mut buf = ByteReader::new(data);
 
         let header = Header::parse(&mut buf)?;
-        let queries = Query::parse(&mut buf, header)?;
-        let answers = Answer::parse(&mut buf, header)?;
+        let mut queries = vec![];
+        let answers = vec![];
+
+        for _ in 0..header.question {
+            queries.push(Query::parse(&mut buf)?);
+        };
 
         Ok(
             DnsMessage {
@@ -52,10 +52,20 @@ impl DnsMessage {
             }
         )
     }
-}
 
-impl Into<Vec<u8>> for DnsMessage {
-    fn into(self) -> Vec<u8> {
-        todo!()
+    pub fn to_bytes(self) -> Result<Vec<u8>> {
+        let mut bytes = vec![];
+
+        bytes.extend(self.header.to_bytes()?);
+
+        for query in self.queries {
+            bytes.extend(query.to_bytes()?);
+        }
+
+        for answer in self.answers {
+            bytes.extend(answer.to_bytes()?);
+        }
+
+        Ok(bytes)
     }
 }
