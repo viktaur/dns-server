@@ -5,12 +5,17 @@ use deku::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, DekuRead, DekuWrite)]
 pub struct Answer {
+    #[deku(endian="big")]
     name: u16,              // Represented as the offset, such as 0xc00c
     record_type: RecordType,       // e.g. AAAA 0x001x
+    #[deku(endian="big")]
     class: u16,
+    #[deku(endian="big")]
     ttl: u32,
+    #[deku(endian="big")]
     data_length: u16,
     #[deku(count = "data_length")]
+    #[deku(endian="big")]
     data: Vec<u8>           // e.g. 2a00:1440:4007::810d:2013
 }
 

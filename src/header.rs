@@ -4,22 +4,28 @@ use anyhow::{anyhow, Error, Result};
 
 #[derive(Debug, PartialEq, Clone, Copy, DekuRead, DekuWrite)]
 pub struct Header {
+    #[deku(endian = "big")]
     pub transaction_id: u16,
     pub flags: Flags,
     /// Number of queries in packet.
+    #[deku(endian = "big")]
     pub question: u16,
     /// Number of answers in packet.
+    #[deku(endian = "big")]
     pub answer: u16,
     /// Number of authoritative records in packet.
+    #[deku(endian = "big")]
     pub authority: u16,
     /// Number of additional records in packet.
+    #[deku(endian = "big")]
     pub additional: u16,
 }
 
 impl Header {
     pub fn parse(buf: &mut ByteReader) -> Result<Self> {
-        let ((_, new_pos), header) = DekuContainerRead::from_bytes((buf.data(), buf.pos()))?;
-        buf.jump_to(new_pos)?;
+        let ((remaining, _), header) = DekuContainerRead::from_bytes((buf.data(), buf.pos()*8))?;
+        let bytes_read = buf.remaining_bytes() - remaining.len();
+        buf.step(bytes_read)?;
         Ok(header)
     }
 

@@ -19,6 +19,10 @@ impl ByteReader {
         }
     }
 
+    pub fn remaining_bytes(&self) -> usize {
+        self.data.len() - self.pos
+    }
+
     pub fn data(&self) -> &[u8] {
         &self.data
     }

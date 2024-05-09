@@ -1,5 +1,6 @@
 use std::ascii::AsciiExt;
 use anyhow::{Result, anyhow};
+use crate::buffer::ByteReader;
 
 pub fn parse_name(data: &[u8]) -> Result<(String, usize)> {
     let mut iter = data.into_iter();
@@ -11,13 +12,12 @@ pub fn parse_name(data: &[u8]) -> Result<(String, usize)> {
         if n > 0 {
             let mut str = String::new();
             for _ in 0..n {
-                bytes_read += 1;
-                let c: char = iter
-                    .next()
-                    .ok_or(anyhow!("Wrong encoding."))?
-                    .to_owned()
-                    .into();
-                str.push(c);
+                if let Some(&c) = iter.next() {
+                    bytes_read += 1;
+                    str.push(c.into());
+                } else {
+                    break;
+                }
             }
             name.push(str);
         } else {

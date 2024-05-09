@@ -32,12 +32,13 @@ impl Query {
     }
 
     fn parse_record_type(buf: &mut ByteReader) -> Result<RecordType> {
-        // let bytes = buf.read_n_bytes(2)?;
-        // let value = u16::from_be_bytes(bytes.try_into()?);
-        // value.try_into()
-        let ((_, new_pos), record_type) = DekuContainerRead::from_bytes((buf.data(), buf.pos()))?;
-        buf.jump_to(new_pos)?;
-        Ok(record_type)
+        let bytes = buf.read_n_bytes(2)?;
+        let value = u16::from_be_bytes(bytes.try_into()?);
+        value.try_into()
+        // let ((remaining, _), header) = DekuContainerRead::from_bytes((buf.data(), buf.pos()))?;
+        // let bytes_read = buf.remaining_bytes() - remaining.len();
+        // buf.step(bytes_read)?;
+        // Ok(header)
     }
 
     fn parse_class(buf: &mut ByteReader) -> Result<u16> {

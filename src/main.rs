@@ -38,9 +38,14 @@ fn main() -> Result<()> {
 
         // Redeclare `buf` as slice of the actually received data.
         let buf = &buf[..amt];
-        let res = query(buf)?;
+        let res = match query(buf) {
+            Ok(res) => res,
+            Err(e) => { println!("{:?}", e); continue }
+        };
         socket.send_to(&res, &src)?;
         println!("Response sent to {src}");
+        println!("Request: {:?}", buf);
+        println!("Response: {:?}", res);
     }
 }
 

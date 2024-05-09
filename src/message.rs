@@ -18,7 +18,7 @@ impl DnsMessage {
             transaction_id: self.header.transaction_id,
             flags: self.header.flags.handle()?,
             question: self.header.question,
-            answer: self.answers.len() as u16,
+            answer: answers.len() as u16,
             authority: self.header.authority,
             additional: self.header.additional,
         };
