@@ -10,20 +10,23 @@ Its functionality can be tested with a tool like `dig` on localhost and the spec
 ```bash
 dig +retry=0 -p 1053 @127.0.0.1 +noedns example.com A
 ```
-
+## Records
+`A` records for amazon.co.uk stored in `records.json`.
 <figure>
   <img src="media/records-json.png" alt="" height="200" />
-  <figcaption>A records for amazon.co.uk stored in a records.json.</figcaption>
 </figure>
 
+## Input and output stream
+Stream of bytes from the query and the response message sent back to the origin. As we can see, one response has been sent for each RR and correspond to the ones in `records.json`. 
 <figure>
   <img src="media/server-logs.png" alt="" height="100" />
-  <figcaption>Input and output stream of bytes from the query.</figcaption>
 </figure>
 
+## Using dig
+Interpretation of the DNS message by the `dig` tool.
 <figure>
   <img src="media/dig.png" alt="" height="400" />
-  <figcaption>Interpretation of the byte stream returned by dig.</figcaption>
 </figure>
 
+## Further reading
 A detailed overview of the project can be found in this [paper](paper.pdf).
