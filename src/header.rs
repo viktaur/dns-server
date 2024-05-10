@@ -1,6 +1,6 @@
 use deku::prelude::*;
 use crate::buffer::ByteDecoder;
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, Result};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 // #[deku(
@@ -103,7 +103,7 @@ pub struct Flags {
 
 impl Flags {
     pub fn handle(&self) -> Result<Self> {
-        let mut new_flags = self.clone();
+        let mut new_flags = *self;
 
         if !self.qr { // it's a query
             new_flags.qr = true;

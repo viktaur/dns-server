@@ -1,5 +1,5 @@
-use deku::prelude::*;
-use anyhow::{Error, anyhow, Result};
+
+use anyhow::{anyhow, Result};
 
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq, serde::Deserialize)]
 pub enum RecordType {

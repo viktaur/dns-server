@@ -1,9 +1,9 @@
 use crate::answer::Answer;
 use crate::buffer::ByteDecoder;
-use crate::header::{self, Header};
+use crate::header::{Header};
 use crate::query::Query;
 use anyhow::{Result};
-use deku::prelude::*;
+
 
 // #[derive(Clone, DekuRead, DekuWrite)]
 // #[deku(endian = "big")]

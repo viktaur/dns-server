@@ -1,7 +1,7 @@
-use crate::{buffer::ByteDecoder, header::Header, query::Query, record::RecordType, utils};
+use crate::{buffer::ByteDecoder, query::Query, record::RecordType, utils};
 use std::net::{Ipv4Addr, Ipv6Addr};
 use anyhow::{Result};
-use deku::prelude::*;
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Answer {

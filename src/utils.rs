@@ -1,9 +1,9 @@
-use std::ascii::AsciiExt;
+
 use anyhow::{Result, anyhow};
-use crate::buffer::ByteDecoder;
+
 
 pub fn parse_name(data: &[u8]) -> Result<(String, usize)> {
-    let mut iter = data.into_iter();
+    let mut iter = data.iter();
     let mut name: Vec<String> = Vec::new();
     let mut bytes_read = 0;
 

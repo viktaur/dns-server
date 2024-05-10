@@ -1,12 +1,12 @@
 use answer::Answer;
 use anyhow::{anyhow, Result};
-use header::Header;
+
 use message::{DnsMessage};
 use record::RecordType;
 use std::collections::HashMap;
-use std::hash::Hash;
+
 use std::io::BufReader;
-use std::{fs::File, io::Read};
+use std::{fs::File};
 use std::net::{SocketAddr, UdpSocket};
 
 mod record;
@@ -43,7 +43,7 @@ fn main() -> Result<()> {
             Ok(res) => res,
             Err(e) => { println!("{:?}", e); continue }
         };
-        socket.send_to(&res, &src)?;
+        socket.send_to(&res, src)?;
         println!("Response sent to {src}");
         // println!("Request: {:?}", buf);
         // println!("Response: {:?}", res);
@@ -64,7 +64,7 @@ fn query(request: &[u8]) -> Result<Vec<u8>> {
             .get(&query.record_type).ok_or(anyhow!("Query not found"))?;
 
         for rr in rrs {
-            let answer = Answer::from_query(&query, request, rr)?;
+            let answer = Answer::from_query(query, request, rr)?;
             answers.push(answer);
         }
     }
@@ -72,5 +72,5 @@ fn query(request: &[u8]) -> Result<Vec<u8>> {
     println!("{:?}", dns_msg.queries);
     println!("{:?}", answers);
 
-    Ok(dns_msg.handle(answers)?.encode()?)
+    dns_msg.handle(answers)?.encode()
 }
