@@ -1,4 +1,4 @@
-use anyhow::{Result};
+use anyhow::Result;
 use crate::{buffer::ByteDecoder, record::RecordType, utils};
 
 #[derive(Debug, Clone, PartialEq)]

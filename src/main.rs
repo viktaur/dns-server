@@ -1,12 +1,12 @@
 use answer::Answer;
 use anyhow::{anyhow, Result};
 
-use message::{DnsMessage};
+use message::DnsMessage;
 use record::RecordType;
 use std::collections::HashMap;
 
 use std::io::BufReader;
-use std::{fs::File};
+use std::fs::File;
 use std::net::{SocketAddr, UdpSocket};
 
 mod record;
@@ -45,8 +45,8 @@ fn main() -> Result<()> {
         };
         socket.send_to(&res, src)?;
         println!("Response sent to {src}");
-        // println!("Request: {:?}", buf);
-        // println!("Response: {:?}", res);
+        println!("Request: {:?}", buf);
+        println!("Response: {:?}", res);
     }
 }
 
