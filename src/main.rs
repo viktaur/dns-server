@@ -5,8 +5,9 @@ use message::{DnsMessage};
 use record::RecordType;
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::io::BufReader;
 use std::{fs::File, io::Read};
-use std::net::{SocketAddr, UdpSocket, Ipv4Addr, Ipv6Addr};
+use std::net::{SocketAddr, UdpSocket};
 
 mod record;
 mod message;
@@ -44,31 +45,17 @@ fn main() -> Result<()> {
         };
         socket.send_to(&res, &src)?;
         println!("Response sent to {src}");
-        println!("Request: {:?}", buf);
-        println!("Response: {:?}", res);
+        // println!("Request: {:?}", buf);
+        // println!("Response: {:?}", res);
     }
 }
 
 /// Processes a query represented as a binary DNS message and returns a response in the
 /// same form.
 fn query(request: &[u8]) -> Result<Vec<u8>> {
-    let record_data = r#"
-        {
-            "google.com": {
-                "A": ["142.250.200.46"],
-                "AAAA": ["2a00:1450:4009:823::200e"]
-            },
-            "amazon.co.uk": {
-                "A": [
-                    "54.239.33.58",
-                    "54.239.34.171",
-                    "178.236.7.220"
-                ]
-            }
-        }"#;
-
-    let records: NameToRecords = serde_json::from_str(record_data)?;
-    let dns_msg = DnsMessage::parse(request)?;
+    let reader = BufReader::new(File::open("records.json")?);
+    let records: NameToRecords = serde_json::from_reader(reader)?;
+    let dns_msg = DnsMessage::decode(request)?;
     let mut answers = vec![];
 
     for query in &dns_msg.queries {
@@ -85,20 +72,5 @@ fn query(request: &[u8]) -> Result<Vec<u8>> {
     println!("{:?}", dns_msg.queries);
     println!("{:?}", answers);
 
-    Ok(dns_msg.handle(answers)?.to_bytes()?)
-}
-
-fn query_file(request: &[u8]) -> Result<Vec<u8>> {
-    let mut f = File::open("response_packet.txt")?;
-    let mut buf = Vec::new();
-    f.read_to_end(&mut buf)?;
-
-    println!("Reques {:?}", request);
-    println!("{:?}", buf);
-    let id = &request[0..2];
-    let mut res = Vec::from(id);
-    res.extend(&buf[2..]);
-    println!("{:?}", id);
-    println!("{:?}", res);
-    Ok(res)
+    Ok(dns_msg.handle(answers)?.encode()?)
 }

@@ -1,14 +1,17 @@
 use crate::answer::Answer;
-use crate::buffer::ByteReader;
+use crate::buffer::ByteDecoder;
 use crate::header::{self, Header};
 use crate::query::Query;
 use anyhow::{Result};
 use deku::prelude::*;
 
-#[derive(Clone)]
+// #[derive(Clone, DekuRead, DekuWrite)]
+// #[deku(endian = "big")]
 pub struct DnsMessage {
     pub header: Header,
+    // #[deku(count="header.question")]
     pub queries: Vec<Query>,
+    // #[deku(count="header.answer")]
     pub answers: Vec<Answer>,
 }
 
@@ -26,23 +29,44 @@ impl DnsMessage {
 
         Ok(
             DnsMessage {
-                header: new_header,
-                queries,
-                answers,
+                header: new_header,         // Replace the header with the new one.
+                queries,                    // Queries section is left untouched.
+                answers,                    // Include the answers section.
             }
         )
     }
 
-    pub fn parse(data: &[u8]) -> Result<Self> {
-        let mut buf = ByteReader::new(data);
+    pub fn encode(self) -> Result<Vec<u8>> {
+        let mut bytes = vec![];
 
-        let header = Header::parse(&mut buf)?;
+        bytes.extend(self.header.encode()?);
+
+        for query in self.queries {
+            bytes.extend(query.encode()?);
+        }
+
+        for answer in self.answers {
+            bytes.extend(answer.encode()?);
+        }
+
+        Ok(bytes)
+    }
+
+    pub fn decode(data: &[u8]) -> Result<Self> {
+        let mut buf = ByteDecoder::new(data);
+
+        let header = Header::decode(&mut buf)?;
         let mut queries = vec![];
-        let answers = vec![];
+        let mut answers = vec![];
 
         for _ in 0..header.question {
-            queries.push(Query::parse(&mut buf)?);
+            queries.push(Query::decode(&mut buf)?);
         };
+
+        // In case it's ever needed
+        for _ in 0..header.answer {
+            answers.push(Answer::decode(&mut buf)?);
+        }
 
         Ok(
             DnsMessage {
@@ -51,21 +75,5 @@ impl DnsMessage {
                 answers,
             }
         )
-    }
-
-    pub fn to_bytes(self) -> Result<Vec<u8>> {
-        let mut bytes = vec![];
-
-        bytes.extend(self.header.to_bytes()?);
-
-        for query in self.queries {
-            bytes.extend(query.to_bytes()?);
-        }
-
-        for answer in self.answers {
-            bytes.extend(answer.to_bytes()?);
-        }
-
-        Ok(bytes)
     }
 }

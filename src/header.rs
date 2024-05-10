@@ -1,41 +1,68 @@
 use deku::prelude::*;
-use crate::buffer::ByteReader;
+use crate::buffer::ByteDecoder;
 use anyhow::{anyhow, Error, Result};
 
-#[derive(Debug, PartialEq, Clone, Copy, DekuRead, DekuWrite)]
+#[derive(Debug, PartialEq, Clone, Copy)]
+// #[deku(
+//     ctx = "endian: deku::ctx::Endian",
+//     endian = "endian"
+// )]
 pub struct Header {
-    #[deku(endian = "big")]
     pub transaction_id: u16,
     pub flags: Flags,
     /// Number of queries in packet.
-    #[deku(endian = "big")]
     pub question: u16,
     /// Number of answers in packet.
-    #[deku(endian = "big")]
     pub answer: u16,
     /// Number of authoritative records in packet.
-    #[deku(endian = "big")]
     pub authority: u16,
     /// Number of additional records in packet.
-    #[deku(endian = "big")]
     pub additional: u16,
 }
 
 impl Header {
-    pub fn parse(buf: &mut ByteReader) -> Result<Self> {
-        let ((remaining, _), header) = DekuContainerRead::from_bytes((buf.data(), buf.pos()*8))?;
-        let bytes_read = buf.remaining_bytes() - remaining.len();
-        buf.step(bytes_read)?;
-        Ok(header)
+    pub fn encode(&self) -> Result<Vec<u8>> {
+        let mut bytes = vec![];
+
+        bytes.extend(self.transaction_id.to_be_bytes());
+        bytes.extend(self.flags.to_bytes()?);
+        bytes.extend(self.question.to_be_bytes());
+        bytes.extend(self.answer.to_be_bytes());
+        bytes.extend(self.authority.to_be_bytes());
+        bytes.extend(self.additional.to_be_bytes());
+
+        Ok(bytes)
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(DekuContainerWrite::to_bytes(self)?)
+    pub fn decode(buf: &mut ByteDecoder) -> Result<Self> {
+        let transaction_id = u16::from_be_bytes(buf.read_n_bytes(2)?.try_into()?);
+        let ((_, _), flags) = Flags::from_bytes((buf.read_n_bytes(2)?, 0))?;
+        let question = u16::from_be_bytes(buf.read_n_bytes(2)?.try_into()?);
+        let answer = u16::from_be_bytes(buf.read_n_bytes(2)?.try_into()?);
+        let authority = u16::from_be_bytes(buf.read_n_bytes(2)?.try_into()?);
+        let additional = u16::from_be_bytes(buf.read_n_bytes(2)?.try_into()?);
+
+        Ok(
+            Header {
+                transaction_id,
+                flags,
+                question,
+                answer,
+                authority,
+                additional,
+            }
+        )
     }
 }
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite, Clone, Copy)]
-#[deku(endian = "big")]
+// #[deku(
+//     // accept the endian variable from the parent
+//     ctx = "endian: deku::ctx::Endian",
+//     // use it as our struct's endian value
+//     endian = "endian"
+// )]
+#[deku(endian="big")]
 pub struct Flags {
     /// Indicates if the message is a query (0) or a reply (1).
     #[deku(bits=1)]
@@ -86,7 +113,7 @@ impl Flags {
 
         match self.opcode {
             0 => (),
-            _ => return Err(anyhow!("Something went wrong in the query!"))
+            _ => return Err(anyhow!("RCODE should always be 0 in queries."))
         }
 
         Ok(new_flags)
