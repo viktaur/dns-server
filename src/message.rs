@@ -1,41 +1,16 @@
 use crate::answer::Answer;
 use crate::buffer::ByteDecoder;
-use crate::header::{Header};
+use crate::header::Header;
 use crate::query::Query;
-use anyhow::{Result};
+use anyhow::Result;
 
-
-// #[derive(Clone, DekuRead, DekuWrite)]
-// #[deku(endian = "big")]
 pub struct DnsMessage {
     pub header: Header,
-    // #[deku(count="header.question")]
     pub queries: Vec<Query>,
-    // #[deku(count="header.answer")]
     pub answers: Vec<Answer>,
 }
 
 impl DnsMessage {
-    pub fn handle(self, answers: Vec<Answer>) -> Result<Self> {
-        let new_header = Header {
-            transaction_id: self.header.transaction_id,
-            flags: self.header.flags.handle()?,
-            question: self.header.question,
-            answer: answers.len() as u16,
-            authority: self.header.authority,
-            additional: self.header.additional,
-        };
-        let queries = self.queries.clone();
-
-        Ok(
-            DnsMessage {
-                header: new_header,         // Replace the header with the new one.
-                queries,                    // Queries section is left untouched.
-                answers,                    // Include the answers section.
-            }
-        )
-    }
-
     pub fn encode(self) -> Result<Vec<u8>> {
         let mut bytes = vec![];
 
@@ -73,6 +48,26 @@ impl DnsMessage {
                 header,
                 queries,
                 answers,
+            }
+        )
+    }
+
+    pub fn handle(self, answers: Vec<Answer>) -> Result<Self> {
+        let new_header = Header {
+            transaction_id: self.header.transaction_id,
+            flags: self.header.flags.handle()?,
+            question: self.header.question,
+            answer: answers.len() as u16,
+            authority: self.header.authority,
+            additional: self.header.additional,
+        };
+        let queries = self.queries.clone();
+
+        Ok(
+            DnsMessage {
+                header: new_header,         // Replace the header with the new one.
+                queries,                    // Queries section is left untouched.
+                answers,                    // Include the answers section.
             }
         )
     }

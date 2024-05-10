@@ -3,10 +3,6 @@ use crate::buffer::ByteDecoder;
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-// #[deku(
-//     ctx = "endian: deku::ctx::Endian",
-//     endian = "endian"
-// )]
 pub struct Header {
     pub transaction_id: u16,
     pub flags: Flags,
@@ -56,12 +52,6 @@ impl Header {
 }
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite, Clone, Copy)]
-// #[deku(
-//     // accept the endian variable from the parent
-//     ctx = "endian: deku::ctx::Endian",
-//     // use it as our struct's endian value
-//     endian = "endian"
-// )]
 #[deku(endian="big")]
 pub struct Flags {
     /// Indicates if the message is a query (0) or a reply (1).
@@ -105,9 +95,9 @@ impl Flags {
     pub fn handle(&self) -> Result<Self> {
         let mut new_flags = *self;
 
-        if !self.qr { // it's a query
+        if !self.qr {               // if it's a query
             new_flags.qr = true;
-        } else { // it's a response
+        } else {                    // if it's a response
             return Err(anyhow!("Header flags indicate message is not a query."));
         }
 

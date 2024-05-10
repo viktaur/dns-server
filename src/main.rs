@@ -1,10 +1,8 @@
 use answer::Answer;
 use anyhow::{anyhow, Result};
-
 use message::DnsMessage;
 use record::RecordType;
 use std::collections::HashMap;
-
 use std::io::BufReader;
 use std::fs::File;
 use std::net::{SocketAddr, UdpSocket};
