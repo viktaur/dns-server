@@ -23,6 +23,7 @@ impl Answer {
         let data: Vec<u8> = match query.record_type {
             RecordType::A => resource.parse::<Ipv4Addr>()?.octets().into(),
             RecordType::AAAA => resource.parse::<Ipv6Addr>()?.octets().into(),
+            RecordType::CNAME => utils::encode_name(resource)?,
         };
 
         Ok(
