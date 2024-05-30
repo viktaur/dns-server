@@ -1,5 +1,5 @@
 # A simple low-level DNS resolver
-This project consists of a DNS server written from scratch in Rust, based on RFCs 1034 and 1035. The server listens for a stream of bytes representing the DNS message on a UDP port, decodes it, looks for a resource record (RR) matching the query, and returns the encoded information back to the origin. The resource record is currently being held in records.json
+This project consists of a DNS server written from scratch in Rust, based on RFCs 1034 and 1035. The server listens for a stream of bytes representing the DNS message on a UDP port, decodes it, looks for a resource record (RR) matching the query, and returns the encoded information back to the origin. The resource record is currently being held in records.json.
 
 The server can be run by passing the port as an argument. You can pick any as long as it's not being used or reserved.
 ```bash
